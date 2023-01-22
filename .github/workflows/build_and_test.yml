@@ -1,0 +1,55 @@
+name: Build and Test
+
+concurrency:
+  group: ${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+
+    - name:
+      uses: actions/checkout@v3
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v -race -bench=. -benchtime=100ms ./...
+
+  apple:
+    name: Apple Build
+    runs-on: macos-12
+    timeout-minutes: 30
+    needs: test
+    env:
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set XCode Version
+        run: sudo xcode-select -switch /Applications/Xcode_13.3.app
+
+      - name: Change Go version to 1.18
+        uses: actions/setup-go@v3
+        with:
+          go-version: '^1.18'
+
+      - name: Build for Apple platforms
+        run: make apple
+        
+      - name: Build future Apple library
+        run: make apple_future
+
