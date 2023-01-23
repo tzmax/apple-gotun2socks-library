@@ -50,20 +50,23 @@ func init() {
 // Tun2socksConnect reads packets from a TUN device and routes it to a socks5 server.
 // Returns an Tun2socksCtl instance.
 //
+// `tunAddr` TUN address.
+// `tunWg` TUN Gateway address.
+// `tunMask` TUN Masking.
 // `tunDns` TUN DNS address.
 // `socks5Proxy` socks5 proxy link.
 // `isUDPEnabled` indicates whether the tunnel and/or network enable UDP proxying.
 //
 // Sets an error if the tunnel fails to connect.
 
-func CreateTunConnect(tunDns string, socks5Proxy string, isUDPEnabled bool) (*Tun2socksCtl, error) {
+func CreateTunConnect(tunAddr, tunWg, tunMask, tunDns, socks5Proxy string, isUDPEnabled bool) (*Tun2socksCtl, error) {
 	// Open the tun device.
 	if tunDns == "" {
 		tunDns = "8.8.8.8,8.8.4.4,1.1.1.1"
 	}
 
 	dnsServers := strings.Split(tunDns, ",")
-	utunName, tunDev, err := openTunDevice("utun0", "10.0.0.0", "10.255.0.1", "255.255.255.0", dnsServers, false)
+	utunName, tunDev, err := openTunDevice("utun0", tunAddr, tunWg, tunMask, dnsServers, false)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("failed to open tun device: %v", err))
 	}
